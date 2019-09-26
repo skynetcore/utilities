@@ -55,14 +55,21 @@
 
 /* messages */
 #define PROC_MSG_DUPLICATE "another process already running. exiting \n"
+#define PROC_MSG_CLOSURE   "closing process lock. exiting \n"
 
 
 /* enable PROC_USE_SEMAPHORE to implement process lock using semaphore */
 #ifdef PROC_USE_SEMAPHORE
+
 #define PROCESS_LOCK_NAME "/process_lock"
 #define LOCKFUNC sem_open
 #define LOCKEXIT sem_unlink
 #define LOCKWAIT sem_trywait
+
+#define PROC_AUTO   void proc_auto(){ \
+                        PROC_DBG(PROC_MSG_CLOSURE); \
+                        LOCKEXIT(PROCESS_LOCK_NAME); \
+                    }\
 
 #define PROC_LOCK   sem_t *sem; \
                     int locked; \
@@ -73,10 +80,7 @@
                     if(locked){ \
                         PROC_DBG(PROC_MSG_DUPLICATE); \
                         PROC_EXIT(0); \
-                    } \
-
-
-#define PROC_UNLOCK LOCKEXIT(PROCESS_LOCK_NAME);
+                    } atexit(proc_auto);\
 
 #else /* if semaphore based lock is not needed, flock is used */
 
@@ -88,13 +92,18 @@
 #define LOCKFUNC open
 #define LOCKEXIT unlink
 
+#define PROC_AUTO   void proc_auto(){ \
+                        PROC_DBG(PROC_MSG_CLOSURE); \
+                        LOCKEXIT(PROCESS_LOCK_NAME); \
+                    }\
+
 #define PROC_LOCK   struct flock proc_lock; \
                     int proc_pid = LOCKFUNC(PROCESS_LOCK_NAME, O_CREAT | O_RDWR, 0666); \
                     int rc = f##LOCK(proc_pid, LOCK_EX | LOCK_NB ); \
                     if (rc || (EWOULDBLOCK == errno)) { \
                        PROC_DBG(PROC_MSG_DUPLICATE); \
                        PROC_EXIT(0); \
-                    } \
+                    } atexit(proc_auto);\
                     // proc_lock.l_start = 0; \
                     // proc_lock.l_len = 0; \
                     // proc_lock.l_type = F_WRLCK; \
@@ -104,7 +113,6 @@
                     //    PROC_EXIT(0); \
                     // } \
 
-#define PROC_UNLOCK LOCKEXIT(PROCESS_LOCK_NAME)
 
 #endif /* PROC_USE_SEMAPHORE */
 
