@@ -16,29 +16,35 @@
 #
 #
 
-PREV_TOTAL=0
-PREV_IDLE=0
+prev_total=0
+prev_idle=0
 
 while true; do
 
    sleep 2
 
-   CPU_DATA=(`sed -n 's/^cpu\s//p' /proc/stat`)
-   IDLE_TIME=${CPU_DATA[3]}
+   cpu_data=(`sed -n 's/^cpu\s//p' /proc/stat`)
+   idle_time=${cpu_data[3]}
+   io_wait=${cpu_data[4]}
 
-   TOTAL_TICKS=0
-   for VALUE in "${CPU_DATA[@]}"; do
-      TOTAL_TICKS=$(($TOTAL_TICKS+$VALUE))
+   idle_time=$((idle_time+io_wait))
+
+   total_ticks=0
+
+   for value in "${cpu_data[@]}"; do
+      total_ticks=$((total_ticks+value))
    done
 
-   DIFF_IDLE=$(($IDLE_TIME-$PREV_IDLE))
-   DIFF_TOTAL=$((TOTAL_TICKS-$PREV_TOTAL))
-   DIFF_USAGE=$((100*(($DIFF_TOTAL-$DIFF_IDLE)/($DIFF_TOTAL+1))))
-   
-   # update at the same location
-   echo -en "\r cpu %: $DIFF_USAGE %  \b\b"
+   diff_idle=$((idle_time-prev_idle))
+   diff_total=$((total_ticks-prev_total+1))
+   diff_usage=$((diff_total-diff_idle))
+   diff_usage=$((diff_usage*100))
+   diff_usage=$((diff_usage/diff_total))
 
-   PREV_TOTAL=$TOTAL_TICKS
-   PREV_IDLE=$IDLE_TIME
-   
+   # update at the same location
+   echo -en "\r cpu : $diff_usage %  \b\b"
+
+   prev_total=$total_ticks
+   prev_idle=$idle_time
+
 done
