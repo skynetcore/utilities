@@ -116,8 +116,10 @@
 
 #endif /* PROC_USE_SEMAPHORE */
 
-
-
+/* process lock auto unlock */
+#ifdef PROC_AUTO
+PROC_AUTO
+#endif
 
 #endif /* _LOCK_PROCESS_H_ */
 
