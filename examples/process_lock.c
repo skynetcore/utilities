@@ -5,10 +5,6 @@
 
 #include "../include/proc_lock.h"
 
-#ifdef PROC_AUTO
-PROC_AUTO
-#endif
-
 
 int main()
 {
