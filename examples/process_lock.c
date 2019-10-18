@@ -10,9 +10,9 @@ int main()
 {
     //lock
     PROC_LOCK
-    printf("running speedtest unit test 1.0 \n");
+    printf("running unit test 1.0 \n");
     sleep(10);
-    printf("sleep is over for speedtest unit test 1.0 \n");
+    printf("sleep is over for unit test 1.0 \n");
 
 }
 
